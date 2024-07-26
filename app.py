@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import numpy as np
-from waitress import serve
+# from waitress import serve
 from collections import OrderedDict
 
 # app = Flask(__name__)
