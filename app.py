@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
-from flask_caching import Cache
+# from flask_caching import Cache
 import pandas as pd
 from flask_cors import CORS
 import os
@@ -19,8 +19,8 @@ app.json.sort_keys = False
 CORS(app, resources={r"/*": {"origins": ["https://rr-data-frontend.vercel.app", "https://rr-data-frontend.onrender.com"]}}) # Allow CORS for all origins on all routes
 
 
-app.config['CACHE_TYPE'] = 'simple'  # Use 'simple' cache for development; use 'redis' or other for production
-cache = Cache(app)
+# app.config['CACHE_TYPE'] = 'simple'  # Use 'simple' cache for development; use 'redis' or other for production
+# cache = Cache(app)
 
 
 # Set up logging
@@ -307,16 +307,16 @@ def filter_clinical_trials_route():
         logging.error(f"Error occurred: {str(e)}")
         return jsonify({'error': str(e)}), 500
     
-DATA_DIR = 'data'
-DATA_FILE = 'combined_data.json'
+# DATA_DIR = 'data'
+# DATA_FILE = 'combined_data.json'
 
-@app.route('/combined_data', methods=['GET'])
-@cache.cached(timeout=60)  # Cache response for 60 seconds
-def get_combined_data():
-    try:
-        return send_from_directory(DATA_DIR, DATA_FILE)
-    except FileNotFoundError:
-        return jsonify({"error": "File not found"}), 404
+# @app.route('/combined_data', methods=['GET'])
+# @cache.cached(timeout=60)  # Cache response for 60 seconds
+# def get_combined_data():
+#     try:
+#         return send_from_directory(DATA_DIR, DATA_FILE)
+#     except FileNotFoundError:
+#         return jsonify({"error": "File not found"}), 404
 
 # @app.route('/autosuggest', methods=['GET'])
 # def autosuggest():
