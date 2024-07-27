@@ -73,7 +73,7 @@ def load_data(file_path):
     elif file_path == "20":
         file_path = r'data/Italy_MA.xlsx'
     else:
-        file_path = r'data\Brazil_MA.xlsx'
+        file_path = r'data/Brazil_MA.xlsx'
     file_path = os.path.join(path, file_path)
     df = pd.read_excel(file_path)
     df['Date of decision'] = pd.to_datetime(df['Date of decision'], errors='coerce')
@@ -104,8 +104,6 @@ def filter_data(df, column_name, search_term, start_date, end_date):
     df = df.where(pd.notnull(df), None)  # Replace NaN with None
 
     result = [OrderedDict(zip(df.columns, row)) for row in df.values]
-
-
     # Determine the status column
     st = ''
     if "Market Authorization Status" in df.columns:
@@ -269,21 +267,21 @@ def filter_data_route():
         logging.error(f"Error occurred: {str(e)}")
         return jsonify({'error': str(e)}), 500
     
-@app.route('/get_columns', methods=['POST'])
-def get_columns():
-    data = request.get_json()
-    file_path = data.get('file_path')
+# @app.route('/get_columns', methods=['POST'])
+# def get_columns():
+#     data = request.get_json()
+#     file_path = data.get('file_path')
 
-    if not file_path:
-        return jsonify({'error': 'No file path provided'}), 400
+#     if not file_path:
+#         return jsonify({'error': 'No file path provided'}), 400
 
-    try:
-        df = load_data(file_path)
-        non_empty_columns = df.dropna(axis=1, how='all').columns.tolist()
-        return jsonify({'columns': non_empty_columns})
-    except Exception as e:
-        logging.error(f"Error occurred: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+#     try:
+#         df = load_data(file_path)
+#         non_empty_columns = df.dropna(axis=1, how='all').columns.tolist()
+#         return jsonify({'columns': non_empty_columns})
+#     except Exception as e:
+#         logging.error(f"Error occurred: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
     
 @app.route('/clinical/', methods=['POST'])
 def filter_clinical_trials_route():
