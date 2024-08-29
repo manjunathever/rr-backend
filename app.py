@@ -19,7 +19,11 @@ logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 # app = Flask(__name__)
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 app.json.sort_keys = False
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow CORS for all origins on all routes
+
+# allows CORS for https://drug-reimbursement-regulatory-status.roche.com
+
+CORS(app, resources={r"/*": {"origins": "https://drug-reimbursement-regulatory-status.roche.com"}})
+
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
