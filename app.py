@@ -22,8 +22,8 @@ app.json.sort_keys = False
 
 # allows CORS for https://drug-reimbursement-regulatory-status.roche.com
 
-CORS(app, resources={r"/*": {"origins": "https://drug-reimbursement-regulatory-status.roche.com"}})
-
+# CORS(app, resources={r"/*": {"origins": "https://drug-reimbursement-regulatory-status.roche.com"}})
+CORS(app)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
