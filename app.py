@@ -1,5 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
-# from flask_caching import Cache
+from flask import Flask, request, jsonify
 import pandas as pd
 from flask_cors import CORS
 import os
@@ -17,16 +16,10 @@ from collections import OrderedDict
 logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
 
-
 # app = Flask(__name__)
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 app.json.sort_keys = False
-# CORS(app, resources={r"/*": {"origins": ["https://rr-data-frontend.vercel.app", "https://rr-data-frontend.onrender.com"]}}) # Allow CORS for all origins on all routes
-CORS(app)
-
-# app.config['CACHE_TYPE'] = 'simple'  # Use 'simple' cache for development; use 'redis' or other for production
-# cache = Cache(app)
-
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow CORS for all origins on all routes
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -35,7 +28,58 @@ logging.basicConfig(level=logging.DEBUG)
 matplotlib.rcParams['font.family'] = 'Arial'
 
 # Function to load data from Excel file
-def load_data(file_path):
+# def load_data(file_path):
+#     path = os.getcwd()
+#     if file_path == '1':
+#         file_path = r'data/Germany_MA.xlsx'
+#     elif file_path == '2':
+#         file_path = r'data/Germany_Reimbursement.xlsx'
+#     elif file_path == '3':
+#         file_path = r'data/Europe_MA.xlsx'
+#     elif file_path == '4':
+#         file_path = r'data/USA_MA.xlsx'
+#     elif file_path == '5':
+#         file_path = r'data/Scotland_MA.xlsx'
+#     elif file_path == '6':
+#         file_path = r'data/Scotland_Reimbursement.xlsx'
+#     elif file_path == '7':
+#         file_path = r'data/Australia_MA.xlsx'
+#     elif file_path == '8':
+#         file_path = r'data/Australia_Reimbursement.xlsx'
+#     elif file_path == "9":
+#         file_path = r'data/UK_Reimbursement.xlsx'
+#     elif file_path == "10":
+#         file_path = r'data/UK_MA.xlsx'
+#     elif file_path == "11":
+#         file_path = r'data/France_MA.xlsx'
+#     elif file_path == "12":
+#         file_path = r'data/France_Reimbursement.xlsx'
+#     elif file_path == "13":
+#         file_path = r'data/Spain_MA.xlsx'
+#     elif file_path == "14":
+#         file_path = r'data/Spain_Reimbursement.xlsx'
+#     elif file_path == "15":
+#         file_path = r'data/Sweden_MA.xlsx'
+#     elif file_path == "16":
+#         file_path = r'data/Sweden_Reimbursement.xlsx'
+#     elif file_path == "17":
+#         file_path = r'data/Canada_MA.xlsx'
+#     elif file_path == "18":
+#         file_path = r'data/Canada_Reimbursement.xlsx'
+#     elif file_path == "19":
+#         file_path = r'data/South Korea_MA.xlsx'
+#     elif file_path == "20":
+#         file_path = r'data/Italy_MA.xlsx'
+#     else:
+#         file_path = r'data/Brazil_MA.xlsx'
+#     file_path = os.path.join(path, file_path)
+#     df = pd.read_excel(file_path)
+#     df['Date of decision'] = pd.to_datetime(df['Date of decision'], errors='coerce', format='mixed')
+#     return df
+
+
+# Function to load data from multiple Excel files
+def load_data(file_paths):
     path = os.getcwd()
     data_frames = []
     
@@ -78,6 +122,7 @@ def load_data(file_path):
     # print(combined_df) 
     return combined_df
 
+
 # Function to filter data based on criteria
 def filter_data(df, column_name, search_term, start_date, end_date):
     logging.debug(f"Start date: {start_date}, End date: {end_date}, Column: {column_name}, Term: {search_term}")
@@ -98,6 +143,10 @@ def filter_data(df, column_name, search_term, start_date, end_date):
     elif end_date:
         end_date = pd.to_datetime(end_date, errors='coerce')
         df = df[df['Date of decision'] <= end_date]
+    # else case if the Date of decision is empty 
+    print(df)
+
+
 
     if column_name and search_term:
         df = df[df[column_name].astype(str).str.contains(search_term, case=False, na=False, regex=False)]
@@ -109,6 +158,8 @@ def filter_data(df, column_name, search_term, start_date, end_date):
     df = df.where(pd.notnull(df), None)  # Replace NaN with None
 
     result = [OrderedDict(zip(df.columns, row)) for row in df.values]
+
+    
     # Determine the status column
     st = ''
     if "Market Authorization Status" in df.columns:
@@ -309,42 +360,30 @@ def filter_clinical_trials_route():
     except Exception as e:
         logging.error(f"Error occurred: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    
-# DATA_DIR = 'data'
-# DATA_FILE = 'combined_data.json'
 
-# @app.route('/combined_data', methods=['GET'])
-# @cache.cached(timeout=60)  # Cache response for 60 seconds
-# def get_combined_data():
-#     try:
-#         return send_from_directory(DATA_DIR, DATA_FILE)
-#     except FileNotFoundError:
-#         return jsonify({"error": "File not found"}), 404
+@app.route('/autosuggest', methods=['GET'])
+def autosuggest():
+    query = request.args.get('query', '')
+    column_name = request.args.get('column_name', 'Product Name')
+    file_path = request.args.get('file_path', '')
 
-# @app.route('/autosuggest', methods=['GET'])
-# def autosuggest():
-#     query = request.args.get('query', '')
-#     column_name = request.args.get('column_name', 'Product Name')
-#     file_path = request.args.get('file_path', '')
+    if not file_path:
+        return jsonify([])  # Return an empty list if no file path is provided
 
-#     if not file_path:
-#         return jsonify([])  # Return an empty list if no file path is provided
-
-#     try:
-#         df = load_data(file_path)
-#         if query and column_name in df.columns:
-#             results = df[df[column_name].astype(str).str.contains(query, case=False, na=False,regex=False)]
-#             suggestions = results[column_name].dropna().unique().tolist()
-                        
-#             # Filter suggestions that start with the query
-#             suggestions_starting_with_query = [s for s in suggestions if s.lower().startswith(query.lower())]
+    try:
+        df = load_data(file_path)
+        if query and column_name in df.columns:
+            results = df[df[column_name].astype(str).str.contains(query, case=False, na=False, regex=False)]
+            suggestions = results[column_name].dropna().unique().tolist()
             
-#             return jsonify(suggestions_starting_with_query[:10])  # Return only the top 10 suggestions starting with the query
-#         return jsonify([])
-#     except Exception as e:
-#         logging.error(f"Error occurred: {str(e)}")
-#         return jsonify({'error': str(e)}), 500
-
+            # Filter suggestions that start with the query
+            suggestions_starting_with_query = [s for s in suggestions if s.lower().startswith(query.lower())]
+            
+            return jsonify(suggestions_starting_with_query[:10])  # Return only the top 10 suggestions starting with the query
+        return jsonify([])
+    except Exception as e:
+        logging.error(f"Error occurred: {str(e)}")
+        return jsonify({'error':str(e)}),500
 
 
 mode = 'dev'
